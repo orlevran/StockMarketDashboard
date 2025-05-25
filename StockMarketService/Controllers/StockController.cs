@@ -13,6 +13,7 @@ namespace StockMarketService.Controllers
     public class StockController : ControllerBase
     {
         private readonly IStockDataProvider _provider;
+        private readonly StockAnalyzer _analyzer = new StockAnalyzer();
 
         public StockController(IStockDataProvider provider)
         {
@@ -20,7 +21,7 @@ namespace StockMarketService.Controllers
         }
 
         [HttpGet("analyze")]
-        public async Task<IActionResult> AnalyzeStock(string symbol, DateTime purchaseDate, DateTime sellDate, decimal purchasePrice)
+        public async Task<IActionResult> AnalyzeStock(string symbol, DateTime purchaseDate, DateTime sellDate)
         {
             try
             {
@@ -28,7 +29,7 @@ namespace StockMarketService.Controllers
                 if (_provider is not AlphaVantageProvider realProvider)
                     return StatusCode(500, "Invalid provider instance.");
 
-                var result = await realProvider.AnalyzeAsync(symbol, purchaseDate, sellDate, purchasePrice);
+                var result = await _analyzer.AnalyzeAsync(_provider, symbol, purchaseDate, sellDate);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -9,7 +9,6 @@ namespace StockMarketService.Services
 {
     public interface IStockDataProvider
     {
-        Task<decimal?> GetClosingPriceAsync(string stockSymbol, DateTime date);
-        Task<StockAnalysisResult> AnalyzeAsync(string symbol, DateTime purchaseDate, DateTime sellDate, decimal purchasePrice);
+        Task<Tuple<decimal, decimal>?> GetValuesByDates(string stockSymbol, DateTime purchase_date, DateTime sell_date);
     }
 }

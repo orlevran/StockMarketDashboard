@@ -20,8 +20,9 @@ namespace StockMarketService.Services
             _apiKey = config["AlphaVantage:ApiKey"];
         }
 
-        public async Task<decimal?> GetClosingPriceAsync(string stockSymbol, DateTime date)
+        public async Task<Tuple<decimal, decimal>?> GetValuesByDates(string stockSymbol, DateTime purchase_date, DateTime sell_date)
         {
+            // returns the sell price
             string url = $"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={stockSymbol}&apikey={_apiKey}";
             var response = await _httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode) return null;
@@ -35,14 +36,28 @@ namespace StockMarketService.Services
                 return null;
             }
 
+            decimal purchasePrice = 0;
+            decimal sellPrice = 0;
+
             // Try exact match first
-            string exactDate = date.ToString("yyyy-MM-dd");
-            if (timeSeries.TryGetProperty(exactDate, out JsonElement exactDay) &&
-                exactDay.TryGetProperty("4. close", out JsonElement exactClose))
+            string exactDate = purchase_date.ToString("yyyy-MM-dd");
+            if(timeSeries.TryGetProperty(exactDate, out JsonElement exactPurchaseDay) &&
+                exactPurchaseDay.TryGetProperty("4. close", out JsonElement exactPurchaseClose))
             {
-                return decimal.Parse(exactClose.GetString());
+                purchasePrice = decimal.Parse(exactPurchaseClose.GetString());
             }
 
+            exactDate = sell_date.ToString("yyyy-MM-dd");
+            if (timeSeries.TryGetProperty(exactDate, out JsonElement exactSellDay) &&
+                exactSellDay.TryGetProperty("4. close", out JsonElement exactSellClose))
+            {
+                sellPrice = decimal.Parse(exactSellClose.GetString());
+                //return decimal.Parse(exactClose.GetString());
+            }
+
+            Tuple<decimal, decimal>? result = new Tuple<decimal, decimal>(purchasePrice, sellPrice);
+            return result;
+            /*
 
             // Fallback: find closest earlier date
             var allDates = timeSeries.EnumerateObject()
@@ -52,7 +67,7 @@ namespace StockMarketService.Services
                     Date = DateTime.Parse(p.Name),
                     DayData = p.Value
                 })
-                .Where(p => p.Date <= date)
+                .Where(p => p.Date <= sell_date)
                 .OrderByDescending(p => p.Date)
                 .ToList();
 
@@ -66,26 +81,7 @@ namespace StockMarketService.Services
 
             Console.WriteLine("No valid price data found.");
             return null;
-        }
-
-
-        public async Task<StockAnalysisResult> AnalyzeAsync(string symbol, DateTime purchaseDate, DateTime sellDate, decimal purchasePrice)
-        {
-            var sellPrice = await GetClosingPriceAsync(symbol, sellDate);
-            if (sellPrice == null)
-                throw new Exception("Could not fetch stock price");
-
-            var change = sellPrice.Value - purchasePrice;
-            var percentChange = (change / purchasePrice) * 100;
-
-            return new StockAnalysisResult
-            {
-                Symbol = symbol,
-                PurchasePrice = purchasePrice,
-                SalePrice = sellPrice.Value,
-                Change = change,
-                ChangePercent = percentChange
-            };
+            */
         }
     }
 }
