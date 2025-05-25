@@ -57,31 +57,6 @@ namespace StockMarketService.Services
 
             Tuple<decimal, decimal>? result = new Tuple<decimal, decimal>(purchasePrice, sellPrice);
             return result;
-            /*
-
-            // Fallback: find closest earlier date
-            var allDates = timeSeries.EnumerateObject()
-                .Where(p => DateTime.TryParse(p.Name, out _))
-                .Select(p => new
-                {
-                    Date = DateTime.Parse(p.Name),
-                    DayData = p.Value
-                })
-                .Where(p => p.Date <= sell_date)
-                .OrderByDescending(p => p.Date)
-                .ToList();
-
-            var fallback = allDates.FirstOrDefault();
-            if (fallback != null &&
-                fallback.DayData.TryGetProperty("4. close", out JsonElement fallbackClose))
-            {
-                Console.WriteLine($"Falling back to previous trading day: {fallback.Date:yyyy-MM-dd}");
-                return decimal.Parse(fallbackClose.GetString());
-            }
-
-            Console.WriteLine("No valid price data found.");
-            return null;
-            */
         }
     }
 }
