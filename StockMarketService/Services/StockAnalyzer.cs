@@ -18,9 +18,9 @@ namespace StockMarketService.Services
 
             // Calculate change and percent change
             if (result.Item2 == 0)
-                throw new Exception("Sell price cannot be zero");
+                throw new Exception("Couldn't find sell price. Please try again later or try using different provider");
             if (result.Item1 == 0)
-                throw new Exception("Purchase price cannot be zero");
+                throw new Exception("Couldn't find Purchase price. Please try again later or try using different provider");
             var yield = result.Item2 / result.Item1;
             var change = result.Item2 - result.Item1;
             var changePercent = Math.Round(yield * 100, 5);
